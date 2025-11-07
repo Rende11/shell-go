@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -11,6 +12,8 @@ import (
 // Ensures gofmt doesn't remove the "fmt" and "os" imports in stage 1 (feel free to remove this!)
 var _ = fmt.Fprint
 var _ = os.Stdout
+
+var builtInCommands = []string{"echo", "exit", "type"}
 
 func main() {
 
@@ -34,13 +37,15 @@ func handleCommand(c string) {
 		handleExitCommand(cmd, command[1])
 	case "echo":
 		handleEchoCommand(cmd, command[1])
+	case "type":
+		handleTypeCommand(cmd, command[1])
 	default:
 		fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd)
 	}
 
 }
 
-func handleExitCommand(_ string, args string) {
+func handleExitCommand(_, args string) {
 	exitCode, err := strconv.Atoi(args)
 
 	if err != nil {
@@ -50,6 +55,16 @@ func handleExitCommand(_ string, args string) {
 	os.Exit(exitCode)
 }
 
-func handleEchoCommand(_ string, args string) {
+func handleEchoCommand(_, args string) {
 	fmt.Fprintln(os.Stdout, args)
+}
+
+func handleTypeCommand(_, args string) {
+	switch {
+	case slices.Contains(builtInCommands, args):
+		fmt.Fprintf(os.Stdout, "%s is a shell builtin\n", args)
+	default:
+		fmt.Fprintf(os.Stdout, "%s: not found\n", args)
+
+	}
 }
