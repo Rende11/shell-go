@@ -25,23 +25,31 @@ func main() {
 	}
 }
 
-func handleCommand(command string) {
-	if strings.HasPrefix(command, "exit") {
-		handleExitCommand(command)
+func handleCommand(c string) {
+	command := strings.SplitN(c, " ", 2)
+	cmd := command[0]
+
+	switch cmd {
+	case "exit":
+		handleExitCommand(cmd, command[1])
+	case "echo":
+		handleEchoCommand(cmd, command[1])
+	default:
+		fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd)
 	}
-	fmt.Fprintf(os.Stdout, "%s: command not found\n", command)
+
 }
 
-func handleExitCommand(command string) {
-	cmd := strings.Split(command, " ")
-	arg := cmd[1]
-
-	exitCode, err := strconv.Atoi(arg)
+func handleExitCommand(_ string, args string) {
+	exitCode, err := strconv.Atoi(args)
 
 	if err != nil {
-		fmt.Fprintf(os.Stdout, "Cannot handle exit code: %v, error: %v", arg, err)
+		fmt.Fprintf(os.Stdout, "Cannot handle exit code: %v, error: %v", args, err)
 		return
 	}
 	os.Exit(exitCode)
+}
 
+func handleEchoCommand(_ string, args string) {
+	fmt.Fprintln(os.Stdout, args)
 }
