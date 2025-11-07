@@ -11,13 +11,14 @@ var _ = fmt.Fprint
 var _ = os.Stdout
 
 func main() {
-	fmt.Fprint(os.Stdout, "$ ")
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	if scanner.Scan() {
-		command := scanner.Text()
-		fmt.Fprintf(os.Stdout, "%s: command not found", command)
+	for {
+		fmt.Fprint(os.Stdout, "$ ")
+		if scanner.Scan() {
+			command := scanner.Text()
+			fmt.Fprintf(os.Stdout, "%s: command not found\n", command)
+		}
 	}
-
 }
