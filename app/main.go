@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 )
@@ -10,6 +11,13 @@ var _ = fmt.Fprint
 var _ = os.Stdout
 
 func main() {
-	// TODO: Uncomment the code below to pass the first stage
 	fmt.Fprint(os.Stdout, "$ ")
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	if scanner.Scan() {
+		command := scanner.Text()
+		fmt.Fprintf(os.Stdout, "%s: command not found", command)
+	}
+
 }
