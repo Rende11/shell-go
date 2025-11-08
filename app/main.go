@@ -16,7 +16,7 @@ import (
 var _ = fmt.Fprint
 var _ = os.Stdout
 
-var builtInCommands = []string{"echo", "exit", "type"}
+var builtInCommands = []string{"echo", "exit", "type", "pwd"}
 
 func main() {
 
@@ -44,6 +44,8 @@ func handleCommand(c string) {
 		handleEchoCommand(cmd, args)
 	case "type":
 		handleTypeCommand(cmd, args)
+	case "pwd":
+		handlePWDCommand(cmd, args)
 	default:
 		handleOtherCommand(cmd, args)
 	}
@@ -123,4 +125,13 @@ func execCommand(path string, args []string) {
 		return
 	}
 	fmt.Fprint(os.Stdout, string(out))
+}
+
+func handlePWDCommand(_ string, _ []string) {
+	path, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "error: %v\n", err)
+		return
+	}
+	fmt.Fprintf(os.Stdout, "%s\n", path)
 }
