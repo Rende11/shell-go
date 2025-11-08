@@ -32,10 +32,10 @@ func main() {
 }
 
 func handleCommand(c string) {
-	commandSlice := strings.Split(c, " ")
+	commandSlice := strings.SplitN(c, " ", 2)
 
 	cmd := commandSlice[0]
-	args := commandSlice[1:]
+	args := parseArgs(commandSlice[1])
 
 	switch cmd {
 	case "exit":
@@ -168,4 +168,35 @@ func correctPath(path string) string {
 		return strings.ReplaceAll(path, homeSign, home)
 	}
 	return path
+}
+
+func parseArgs(args string) []string {
+	inQuotes := false
+	var acc []string
+	var buf []rune
+
+	flush := func() {
+		if len(buf) > 0 {
+			acc = append(acc, string(buf))
+			buf = buf[:0]
+		}
+	}
+
+	for _, c := range args {
+		switch c {
+		case ' ':
+			if !inQuotes {
+				flush()
+			} else {
+				buf = append(buf, c)
+			}
+		case '\'':
+			inQuotes = !inQuotes
+		default:
+			buf = append(buf, c)
+		}
+	}
+
+	flush()
+	return acc
 }
