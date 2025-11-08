@@ -35,7 +35,7 @@ func handleCommand(c string) {
 	commandSlice := strings.SplitN(c, " ", 2)
 
 	cmd := commandSlice[0]
-	args := parseArgs(commandSlice[1])
+	args := parseArgs(commandSlice[1:])
 
 	switch cmd {
 	case "exit":
@@ -170,7 +170,8 @@ func correctPath(path string) string {
 	return path
 }
 
-func parseArgs(args string) []string {
+func parseArgs(sargs []string) []string {
+	args := strings.Join(sargs, " ")
 	inQuotes := false
 	var acc []string
 	var buf []rune
