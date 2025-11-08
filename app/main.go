@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -31,24 +32,25 @@ func main() {
 }
 
 func handleCommand(c string) {
-	command := strings.SplitN(c, " ", 2)
-	cmd := command[0]
+	commandSlice := strings.Split(c, " ")
+
+	cmd := commandSlice[0]
+	args := commandSlice[1:]
 
 	switch cmd {
 	case "exit":
-		handleExitCommand(cmd, command[1])
+		handleExitCommand(cmd, args)
 	case "echo":
-		handleEchoCommand(cmd, command[1])
+		handleEchoCommand(cmd, args)
 	case "type":
-		handleTypeCommand(cmd, command[1])
+		handleTypeCommand(cmd, args)
 	default:
-		fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd)
+		handleOtherCommand(cmd, args)
 	}
-
 }
 
-func handleExitCommand(_, args string) {
-	exitCode, err := strconv.Atoi(args)
+func handleExitCommand(_ string, args []string) {
+	exitCode, err := strconv.Atoi(args[0])
 
 	if err != nil {
 		fmt.Fprintf(os.Stdout, "Cannot handle exit code: %v, error: %v", args, err)
@@ -57,21 +59,22 @@ func handleExitCommand(_, args string) {
 	os.Exit(exitCode)
 }
 
-func handleEchoCommand(_, args string) {
-	fmt.Fprintln(os.Stdout, args)
+func handleEchoCommand(_ string, args []string) {
+	fmt.Fprintln(os.Stdout, strings.Join(args, " "))
 }
 
-func handleTypeCommand(_, args string) {
-	if slices.Contains(builtInCommands, args) {
-		fmt.Fprintf(os.Stdout, "%s is a shell builtin\n", args)
+func handleTypeCommand(_ string, args []string) {
+	cmd := args[0]
+	if slices.Contains(builtInCommands, cmd) {
+		fmt.Fprintf(os.Stdout, "%s is a shell builtin\n", cmd)
 		return
 	}
 
-	if path, ok := searchExecPath(args); ok {
-		fmt.Fprintf(os.Stdout, "%s is %s\n", args, path)
+	if path, ok := searchExecPath(cmd); ok {
+		fmt.Fprintf(os.Stdout, "%s is %s\n", cmd, path)
 		return
 	}
-	fmt.Fprintf(os.Stdout, "%s: not found\n", args)
+	fmt.Fprintf(os.Stdout, "%s: not found\n", cmd)
 }
 
 func searchExecPath(execName string) (string, bool) {
@@ -103,4 +106,21 @@ func isExecutable(mode fs.FileMode) bool {
 	groupCanExec := modeStr[6] == 'x'
 	otherCanExec := modeStr[9] == 'x'
 	return ownerCanExec || groupCanExec || otherCanExec
+}
+
+func handleOtherCommand(command string, args []string) {
+	if _, ok := searchExecPath(command); ok {
+		execCommand(command, args)
+		return
+	}
+	fmt.Fprintf(os.Stdout, "%s: command not found\n", command)
+}
+
+func execCommand(path string, args []string) {
+	out, err := exec.Command(path, args...).Output()
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "exec command [%s %s] error: %v\n", path, args, err)
+		return
+	}
+	fmt.Fprint(os.Stdout, string(out))
 }
