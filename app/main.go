@@ -139,8 +139,9 @@ func handlePWDCommand(_ string, _ []string) {
 }
 
 func handleCDCommand(_ string, args []string) {
-	path := args[0]
+	path := correctPath(args[0])
 	errMsg := fmt.Sprintf("cd: %s: No such file or directory\n", path)
+
 	info, err := os.Stat(path)
 
 	if err != nil {
@@ -158,4 +159,13 @@ func handleCDCommand(_ string, args []string) {
 		fmt.Fprint(os.Stdout, errMsg)
 		return
 	}
+}
+
+func correctPath(path string) string {
+	homeSign := "~"
+	if strings.Contains(path, homeSign) {
+		home := os.Getenv("HOME")
+		return strings.ReplaceAll(path, homeSign, home)
+	}
+	return path
 }
