@@ -46,6 +46,8 @@ func handleCommand(c string) {
 		handleTypeCommand(cmd, args)
 	case "pwd":
 		handlePWDCommand(cmd, args)
+	case "cd":
+		handleCDCommand(cmd, args)
 	default:
 		handleOtherCommand(cmd, args)
 	}
@@ -134,4 +136,26 @@ func handlePWDCommand(_ string, _ []string) {
 		return
 	}
 	fmt.Fprintf(os.Stdout, "%s\n", path)
+}
+
+func handleCDCommand(_ string, args []string) {
+	path := args[0]
+	errMsg := fmt.Sprintf("cd: %s: No such file or directory\n", path)
+	info, err := os.Stat(path)
+
+	if err != nil {
+		fmt.Fprint(os.Stdout, errMsg)
+		return
+	}
+
+	if !info.IsDir() {
+		fmt.Fprint(os.Stdout, errMsg)
+		return
+	}
+
+	err = os.Chdir(path)
+	if err != nil {
+		fmt.Fprint(os.Stdout, errMsg)
+		return
+	}
 }
