@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -60,11 +62,45 @@ func handleEchoCommand(_, args string) {
 }
 
 func handleTypeCommand(_, args string) {
-	switch {
-	case slices.Contains(builtInCommands, args):
+	if slices.Contains(builtInCommands, args) {
 		fmt.Fprintf(os.Stdout, "%s is a shell builtin\n", args)
-	default:
-		fmt.Fprintf(os.Stdout, "%s: not found\n", args)
-
+		return
 	}
+
+	if path, ok := searchExecPath(args); ok {
+		fmt.Fprintf(os.Stdout, "%s is %s\n", args, path)
+		return
+	}
+	fmt.Fprintf(os.Stdout, "%s: not found\n", args)
+}
+
+func searchExecPath(execName string) (string, bool) {
+	pathEnv := os.Getenv("PATH")
+	paths := strings.Split(pathEnv, string(os.PathListSeparator))
+
+	for _, p := range paths {
+		entries, _ := os.ReadDir(p)
+		for _, entry := range entries {
+			if execName == entry.Name() {
+				path := filepath.Join(p, entry.Name())
+				stats, err := os.Stat(path)
+				if err != nil {
+					continue
+				}
+				mode := stats.Mode()
+				if isExecutable(mode) {
+					return path, true
+				}
+			}
+		}
+	}
+	return "", false
+}
+
+func isExecutable(mode fs.FileMode) bool {
+	modeStr := mode.String()
+	ownerCanExec := modeStr[3] == 'x'
+	groupCanExec := modeStr[6] == 'x'
+	otherCanExec := modeStr[9] == 'x'
+	return ownerCanExec || groupCanExec || otherCanExec
 }
