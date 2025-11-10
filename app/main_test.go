@@ -106,4 +106,13 @@ func TestParseArgs(t *testing.T) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
 	})
+
+	t.Run("backslash in quotes", func(t *testing.T) {
+		input := "echo 'hello\\test'"
+		got := parseArgs(input)
+		want := []string{"hello\\test"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("result not match, got %v, want %v", got, want)
+		}
+	})
 }
