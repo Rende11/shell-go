@@ -32,10 +32,8 @@ func main() {
 }
 
 func handleCommand(c string) {
-	commandSlice := strings.SplitN(c, " ", 2)
-
-	cmd := commandSlice[0]
-	args := parseArgs(commandSlice[1:])
+	cmd := parseCommand(c)
+	args := parseArgs(c)
 
 	switch cmd {
 	case "exit":
@@ -170,9 +168,15 @@ func correctPath(path string) string {
 	return path
 }
 
-func parseArgs(sargs []string) []string {
-	args := strings.Join(sargs, " ")
-	inQuotes := false
+func parseCommand(command string) string {
+	return strings.Split(command, " ")[0]
+}
+
+func parseArgs(command string) []string {
+	args := strings.Join(strings.SplitN(command, " ", 2)[1:], " ")
+
+	inSingleQuotes := false
+	inDoubleQuotes := false
 	var acc []string
 	var buf []rune
 
@@ -186,13 +190,23 @@ func parseArgs(sargs []string) []string {
 	for _, c := range args {
 		switch c {
 		case ' ':
-			if !inQuotes {
-				flush()
-			} else {
+			if inDoubleQuotes || inSingleQuotes {
 				buf = append(buf, c)
+				continue
 			}
+			flush()
+		case '"':
+			if inSingleQuotes {
+				buf = append(buf, c)
+				continue
+			}
+			inDoubleQuotes = !inDoubleQuotes
 		case '\'':
-			inQuotes = !inQuotes
+			if inDoubleQuotes {
+				buf = append(buf, c)
+				continue
+			}
+			inSingleQuotes = !inSingleQuotes
 		default:
 			buf = append(buf, c)
 		}
