@@ -177,6 +177,7 @@ func parseArgs(command string) []string {
 
 	inSingleQuotes := false
 	inDoubleQuotes := false
+	isQuoted := false
 	var acc []string
 	var buf []rune
 
@@ -188,7 +189,18 @@ func parseArgs(command string) []string {
 	}
 
 	for _, c := range args {
+		if isQuoted {
+			buf = append(buf, c)
+			isQuoted = false
+			continue
+		}
 		switch c {
+		case '\\':
+			if inDoubleQuotes || inSingleQuotes {
+				buf = append(buf, c)
+				continue
+			}
+			isQuoted = true
 		case ' ':
 			if inDoubleQuotes || inSingleQuotes {
 				buf = append(buf, c)
