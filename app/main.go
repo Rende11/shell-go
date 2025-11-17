@@ -32,8 +32,10 @@ func main() {
 }
 
 func handleCommand(c string) {
-	cmd := parseCommand(c)
-	args := parseArgs(c)
+	tokens := parseInput(c)
+
+	cmd := tokens[0]
+	args := tokens[1:]
 
 	switch cmd {
 	case "exit":
@@ -139,7 +141,7 @@ func handlePWDCommand(_ string, _ []string) {
 }
 
 func handleCDCommand(_ string, args []string) {
-	path := correctPath(args[0])
+	path := args[0]
 	errMsg := fmt.Sprintf("cd: %s: No such file or directory\n", path)
 
 	info, err := os.Stat(path)
@@ -170,12 +172,8 @@ func correctPath(path string) string {
 	return path
 }
 
-func parseCommand(command string) string {
-	return strings.Split(command, " ")[0]
-}
-
-func parseArgs(command string) []string {
-	args := strings.Join(strings.SplitN(command, " ", 2)[1:], " ")
+func parseInput(command string) []string {
+	args := command
 
 	inSingleQuotes := false
 	inDoubleQuotes := false
@@ -214,7 +212,7 @@ func parseArgs(command string) []string {
 			buf = append(buf, c)
 			continue
 		}
-		
+
 		switch c {
 		case '\\':
 			isQuoted = true

@@ -5,31 +5,30 @@ import (
 	"testing"
 )
 
-func TestParseCommand(t *testing.T) {
+func TestParseInput(t *testing.T) {
+
 	t.Run("base case", func(t *testing.T) {
 		input := "echo 'hello'"
-		got := parseCommand(input)
-		want := "echo"
-		if got != want {
+		got := parseInput(input)
+		want := []string{"echo", "hello"}
+		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
 	})
 
 	t.Run("command w/o args", func(t *testing.T) {
 		input := "date"
-		got := parseCommand(input)
-		want := "date"
-		if got != want {
+		got := parseInput(input)
+		want := []string{"date"}
+		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
 	})
-}
 
-func TestParseArgs(t *testing.T) {
 	t.Run("one arg", func(t *testing.T) {
 		input := "echo hello"
-		got := parseArgs(input)
-		want := []string{"hello"}
+		got := parseInput(input)
+		want := []string{"echo", "hello"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -37,8 +36,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("two args", func(t *testing.T) {
 		input := "echo hello world"
-		got := parseArgs(input)
-		want := []string{"hello", "world"}
+		got := parseInput(input)
+		want := []string{"echo", "hello", "world"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -46,8 +45,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("single quoted arg", func(t *testing.T) {
 		input := "echo 'hello world'"
-		got := parseArgs(input)
-		want := []string{"hello world"}
+		got := parseInput(input)
+		want := []string{"echo", "hello world"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -55,8 +54,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("single quoted arg with multiple spaces", func(t *testing.T) {
 		input := "echo 'hello   world'"
-		got := parseArgs(input)
-		want := []string{"hello   world"}
+		got := parseInput(input)
+		want := []string{"echo", "hello   world"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -64,8 +63,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("complex single quoted args cae", func(t *testing.T) {
 		input := "echo 'hello   world' my''super hero"
-		got := parseArgs(input)
-		want := []string{"hello   world", "mysuper", "hero"}
+		got := parseInput(input)
+		want := []string{"echo", "hello   world", "mysuper", "hero"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -73,8 +72,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("double quoted arg", func(t *testing.T) {
 		input := "echo \"hello test\""
-		got := parseArgs(input)
-		want := []string{"hello test"}
+		got := parseInput(input)
+		want := []string{"echo", "hello test"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -82,8 +81,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("double quoted arg with multiple spaces", func(t *testing.T) {
 		input := "echo \"hello   world\""
-		got := parseArgs(input)
-		want := []string{"hello   world"}
+		got := parseInput(input)
+		want := []string{"echo", "hello   world"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -91,8 +90,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("single quote in double quotes", func(t *testing.T) {
 		input := "echo \"example\"  \"hello's\"  test\"\"shell"
-		got := parseArgs(input)
-		want := []string{"example", "hello's", "testshell"}
+		got := parseInput(input)
+		want := []string{"echo", "example", "hello's", "testshell"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -100,8 +99,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("backslash", func(t *testing.T) {
 		input := "echo hello\\ \\ test"
-		got := parseArgs(input)
-		want := []string{"hello  test"}
+		got := parseInput(input)
+		want := []string{"echo", "hello  test"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -109,8 +108,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("backslash in quotes", func(t *testing.T) {
 		input := "echo \"hello \\\" world\""
-		got := parseArgs(input)
-		want := []string{"hello \" world"}
+		got := parseInput(input)
+		want := []string{"echo", "hello \" world"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -118,8 +117,8 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("escape chars in paths", func(t *testing.T) {
 		input := "echo \"/tmp/quz/'f 15'\""
-		got := parseArgs(input)
-		want := []string{"/tmp/quz/'f 15'"}
+		got := parseInput(input)
+		want := []string{"echo", "/tmp/quz/'f 15'"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
@@ -127,8 +126,35 @@ func TestParseArgs(t *testing.T) {
 
 	t.Run("escape chars in paths 2", func(t *testing.T) {
 		input := "echo \"/tmp/ant/'f  \\43'\""
-		got := parseArgs(input)
-		want := []string{"/tmp/ant/'f  \\43'"}
+		got := parseInput(input)
+		want := []string{"echo", "/tmp/ant/'f  \\43'"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("input: %v, result not match, got %v, want %v", input, got, want)
+		}
+	})
+
+	t.Run("parse full input", func(t *testing.T) {
+		input := "echo test"
+		got := parseInput(input)
+		want := []string{"echo", "test"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("input: %v, result not match, got %v, want %v", input, got, want)
+		}
+	})
+
+	t.Run("parse full input", func(t *testing.T) {
+		input := "echo 'test 123'"
+		got := parseInput(input)
+		want := []string{"echo", "test 123"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("input: %v, result not match, got %v, want %v", input, got, want)
+		}
+	})
+
+	t.Run("parse full input", func(t *testing.T) {
+		input := "'echo ko' 'test 123'"
+		got := parseInput(input)
+		want := []string{"echo ko", "test 123"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("input: %v, result not match, got %v, want %v", input, got, want)
 		}
