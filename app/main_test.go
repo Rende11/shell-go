@@ -124,4 +124,13 @@ func TestParseArgs(t *testing.T) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
 	})
+
+	t.Run("escape chars in paths 2", func(t *testing.T) {
+		input := "echo \"/tmp/ant/'f  \\43'\""
+		got := parseArgs(input)
+		want := []string{"/tmp/ant/'f  \\43'"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("input: %v, result not match, got %v, want %v", input, got, want)
+		}
+	})
 }

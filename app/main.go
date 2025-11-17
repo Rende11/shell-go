@@ -119,9 +119,11 @@ func handleOtherCommand(command string, args []string) {
 }
 
 func execCommand(path string, args []string) {
-	out, err := exec.Command(path, args...).Output()
+	cmd := exec.Command(path, args...)
+	out, err := cmd.CombinedOutput()
+
 	if err != nil {
-		fmt.Fprintf(os.Stdout, "exec command [%s %s] error: %v\n", path, args, err)
+		fmt.Fprint(os.Stdout, string(out))
 		return
 	}
 	fmt.Fprint(os.Stdout, string(out))
@@ -190,16 +192,31 @@ func parseArgs(command string) []string {
 
 	for _, c := range args {
 		if isQuoted {
-			buf = append(buf, c)
 			isQuoted = false
-			continue
-		}
-		switch c {
-		case '\\':
+
 			if inSingleQuotes {
+				buf = append(buf, '\\')
 				buf = append(buf, c)
 				continue
 			}
+
+			if inDoubleQuotes {
+				if c == '"' || c == '\\' {
+					buf = append(buf, c)
+				} else {
+					buf = append(buf, '\\')
+					buf = append(buf, c)
+				}
+				continue
+			}
+
+			// default
+			buf = append(buf, c)
+			continue
+		}
+		
+		switch c {
+		case '\\':
 			isQuoted = true
 		case ' ':
 			if inDoubleQuotes || inSingleQuotes {
@@ -225,5 +242,9 @@ func parseArgs(command string) []string {
 	}
 
 	flush()
+
+	for i := range acc {
+		acc[i] = correctPath(acc[i])
+	}
 	return acc
 }
