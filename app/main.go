@@ -196,7 +196,7 @@ func parseArgs(command string) []string {
 		}
 		switch c {
 		case '\\':
-			if inDoubleQuotes || inSingleQuotes {
+			if inSingleQuotes {
 				buf = append(buf, c)
 				continue
 			}

@@ -108,9 +108,18 @@ func TestParseArgs(t *testing.T) {
 	})
 
 	t.Run("backslash in quotes", func(t *testing.T) {
-		input := "echo 'hello\\test'"
+		input := "echo \"hello \\\" world\""
 		got := parseArgs(input)
-		want := []string{"hello\\test"}
+		want := []string{"hello \" world"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("result not match, got %v, want %v", got, want)
+		}
+	})
+
+	t.Run("escape chars in paths", func(t *testing.T) {
+		input := "echo \"/tmp/quz/'f 15'\""
+		got := parseArgs(input)
+		want := []string{"/tmp/quz/'f 15'"}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("result not match, got %v, want %v", got, want)
 		}
